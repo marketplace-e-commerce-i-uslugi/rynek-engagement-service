@@ -2,7 +2,11 @@
 
 `engagement-service` — pytania (komentarze), opinie, polubienia, zgłoszenia
 
-> Status: **szkielet**. Wszystkie endpointy z tabeli istnieją w kontrolerach (`src/main/java/.../api/`) i zwracają `501 Not Implemented` (RFC 7807). Ciała żądań to puste rekordy w `api/dto/`.
+> Status: **wszystkie endpointy z tabeli działają** (opinie, pytania, polubienia, zgłoszenia). Zdarzeń Kafki nie ma, zamiast nich są wywołania synchroniczne.
+>
+> Działa: `GET /channels/{id}/reviews`, `GET /channels/{id}/rating-summary`, `POST /orders/{id}/review`, `POST /bookings/{id}/review`, `POST /reviews/{id}/reply`, `GET /internal/ratings`. Pytania: `GET/POST /offers/{id}/questions` (sort `newest`/`useful`), `POST /questions/{id}/answers`, `PATCH`/`DELETE /questions/{id}`, `PUT /questions/{id}/like` (jedno „Przydatne” na użytkownika) i `GET /internal/questions/counts` (liczba pytań dla catalog). Pytać może każdy zalogowany poza właścicielem oferty (sprawdzana w catalog), odpowiada właściciel oferty raz, autor edytuje pytanie do czasu odpowiedzi. Polubienia: `PUT`/`DELETE /offers/{id}/like` (opublikowane oferty, jedno na użytkownika, cofnięcie zawsze możliwe), a `GET /internal/offers/{id}/liked?userId=` służy catalog do pola `liked` w szczegółach oferty. Zgłoszenia: `POST /reports` (oferta, pytanie, opinia, czat), jedno zgłoszenie użytkownika na treść (409 przy powtórce), nie własnej treści; czat przyjmujemy bez sprawdzania, bo chat-service jeszcze nie istnieje. Zgłoszenia mają status `OPEN`, moderacja (rozpatrywanie) jest poza zakresem.
+>
+> Opinię wystawia kupujący zrealizowanego zamówienia albo klient wykonanej usługi (weryfikacja synchronicznie w order-service i booking-service), raz na zamówienie lub rezerwację. Po zapisie engagement woła `PUT /internal/orders/{id}/reviewed` albo `PUT /internal/bookings/{id}/reviewed` (z ponawianiem co minutę, zamiast zdarzenia `review.created`). Opinie i odpowiedzi sprzedawcy trzyma w PostgreSQL (baza `engagement`, Flyway). Ocenę kanału pobierają przy odczycie catalog (karty ofert) i channel (nagłówek kanału) z `/internal/ratings`; bez engagement pokazują 0 / 0.
 
 ## Uruchomienie
 

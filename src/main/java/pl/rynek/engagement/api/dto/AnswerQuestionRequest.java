@@ -1,7 +1,9 @@
 package pl.rynek.engagement.api.dto;
 
-/**
- * Ciało żądania: Odpowiedź sprzedawcy (wyróżniona). Pola do uzupełnienia razem z kontraktem w rynek-contracts.
- */
-public record AnswerQuestionRequest() {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+/** Odpowiedź sprzedawcy na pytanie. */
+public record AnswerQuestionRequest(
+        @NotBlank(message = "Napisz odpowiedź.") @Size(max = 2000, message = "Odpowiedź może mieć najwyżej 2000 znaków.") String text) {
 }

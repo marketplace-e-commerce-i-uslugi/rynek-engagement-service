@@ -1,7 +1,9 @@
 package pl.rynek.engagement.api.dto;
 
-/**
- * Ciało żądania: Edycja własnego pytania. Pola do uzupełnienia razem z kontraktem w rynek-contracts.
- */
-public record UpdateQuestionRequest() {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+/** Edycja własnego pytania (do czasu odpowiedzi sprzedawcy). */
+public record UpdateQuestionRequest(
+        @NotBlank(message = "Napisz pytanie.") @Size(max = 500, message = "Pytanie może mieć najwyżej 500 znaków.") String text) {
 }

@@ -4,6 +4,33 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  datasource:
+    # Lokalnie: rynek-infra/local (docker compose). Inne środowiska ustawiają zmienne.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/engagement}
+    username: ${DB_USER:engagement}
+    password: ${DB_PASSWORD:engagement}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Schemat zakłada Flyway (db/migration); Hibernate tylko sprawdza zgodność encji.
+      ddl-auto: validate
+
+rynek:
+  identity:
+    url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+  catalog:
+    url: ${CATALOG_SERVICE_URL:http://localhost:8083}
+  order:
+    url: ${ORDER_SERVICE_URL:http://localhost:8091}
+  booking:
+    url: ${BOOKING_SERVICE_URL:http://localhost:8093}
+  reviews:
+    # Ponawianie zgłoszeń „opinia zapisana” do order-service i booking-service.
+    notify-retry: 60s
+  jwt:
+    # Klucze publiczne pobierane leniwie przy pierwszym tokenie, więc serwis startuje bez działającego identity.
+    jwk-set-uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}/internal/auth/jwks
+    issuer: ${JWT_ISSUER:rynek-identity}
 
 server:
   port: ${PORT:8088}
