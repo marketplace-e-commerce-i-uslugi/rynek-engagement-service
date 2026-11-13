@@ -56,7 +56,7 @@ Wiersze z §17, w których występuje `engagement` (publikuje lub słucha).
 ## Dane i zależności
 
 - **Magazyn danych:** PostgreSQL
-- **Zależności:** order-service, booking-service (weryfikacja zakupu)
+- **Zależności:** order-service, booking-service (weryfikacja zakupu), notification-service (`POST /internal/notifications`, best effort: sprzedawca dostaje powiadomienie o pytaniu i opinii, autor o odpowiedzi na pytanie i opinię; adres w `NOTIFICATION_SERVICE_URL`)
 - **Kontrakty:** `rynek-contracts/openapi/` i `rynek-contracts/events/`
 - **Lokalne uruchomienie:** `rynek-infra/local/`
 

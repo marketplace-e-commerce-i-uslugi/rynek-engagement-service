@@ -3,6 +3,7 @@ package pl.rynek.engagement.api;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,6 +32,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import pl.rynek.engagement.TestcontainersConfig;
+import pl.rynek.engagement.clients.NotificationClient;
 import pl.rynek.engagement.clients.BookingClient;
 import pl.rynek.engagement.clients.IdentityClient;
 import pl.rynek.engagement.clients.OrderClient;
@@ -50,6 +52,9 @@ class ReviewFlowTests {
 
     @MockitoBean
     JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    NotificationClient notifications;
 
     @MockitoBean
     OrderClient orders;
@@ -121,6 +126,9 @@ class ReviewFlowTests {
                 .andReturn().getResponse().getContentAsString();
         String reviewId = JsonPath.read(created, "$.id");
         verify(bookings).reviewed(booking);
+        // Usługodawca dostaje powiadomienie o opinii (kategoria „rezerwacje”).
+        verify(notifications).send(eq(provider), eq("bookings"), eq("Nowa opinia: 4/5"), eq("Anna Nowak ocenił(a): Malowanie."),
+                eq("/sprzedawca/opinie"), eq("review-" + reviewId + "-created"));
 
         // Druga opinia o tym samym kanale, z zamówienia.
         UUID order = UUID.randomUUID();
@@ -151,6 +159,8 @@ class ReviewFlowTests {
         reply(reviewId, UUID.randomUUID(), "Dziękuję").andExpect(status().isNotFound());
         reply(reviewId, provider, "Dziękuję za opinię").andExpect(status().isOk())
                 .andExpect(jsonPath("$.reply.text").value("Dziękuję za opinię"));
+        verify(notifications).send(eq(customer), eq("bookings"), eq("Sprzedawca odpowiedział na Twoją opinię"), eq("Dziękuję za opinię"),
+                eq("/profil/rezerwacje"), eq("review-" + reviewId + "-replied"));
         reply(reviewId, provider, "Jeszcze raz").andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Na tę opinię już odpowiedziałeś."));
         mvc.perform(get("/api/v1/channels/" + channel + "/reviews"))

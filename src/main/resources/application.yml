@@ -24,6 +24,8 @@ rynek:
     url: ${ORDER_SERVICE_URL:http://localhost:8091}
   booking:
     url: ${BOOKING_SERVICE_URL:http://localhost:8093}
+  notification:
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8095}
   reviews:
     # Ponawianie zgłoszeń „opinia zapisana” do order-service i booking-service.
     notify-retry: 60s

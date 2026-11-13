@@ -3,6 +3,8 @@ package pl.rynek.engagement.api;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,6 +34,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import pl.rynek.engagement.TestcontainersConfig;
+import pl.rynek.engagement.clients.NotificationClient;
 import pl.rynek.engagement.clients.CatalogClient;
 import pl.rynek.engagement.clients.CatalogClient.OfferInfo;
 import pl.rynek.engagement.clients.IdentityClient;
@@ -47,6 +50,9 @@ class QuestionFlowTests {
 
     @MockitoBean
     JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    NotificationClient notifications;
 
     @MockitoBean
     CatalogClient catalog;
@@ -91,6 +97,9 @@ class QuestionFlowTests {
                 .andExpect(jsonPath("$.answer").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         String id = JsonPath.read(body, "$.id");
+        // Sprzedawca dostaje powiadomienie o pytaniu (tytuł oferty z catalog, autor i treść w skrócie).
+        verify(notifications).send(eq(seller), eq("messages"), eq("Nowe pytanie: Oferta"), eq("Jan Kowalski: Czy to ma gwarancję?"),
+                eq("/oferta/" + offer), eq("question-" + id + "-asked"));
 
         // Lista jest publiczna; „mine” widzi tylko autor.
         mvc.perform(get("/api/v1/offers/" + offer + "/questions")).andExpect(status().isOk())
@@ -109,6 +118,8 @@ class QuestionFlowTests {
         answer(id, seller, "  ").andExpect(status().isBadRequest());
         answer(id, seller, "Tak, 24 miesiące.").andExpect(status().isCreated())
                 .andExpect(jsonPath("$.answer.text").value("Tak, 24 miesiące."));
+        verify(notifications).send(eq(asker), eq("messages"), eq("Odpowiedź na Twoje pytanie"), eq("Tak, 24 miesiące."),
+                eq("/oferta/" + offer), eq("question-" + id + "-answered"));
         answer(id, seller, "Jeszcze raz").andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Na to pytanie już odpowiedziałeś."));
         edit("/api/v1/questions/" + id, asker, "Zmiana po odpowiedzi").andExpect(status().isConflict())

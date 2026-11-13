@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pl.rynek.engagement.clients.BookingClient;
 import pl.rynek.engagement.clients.IdentityClient;
 import pl.rynek.engagement.clients.OrderClient;
+import pl.rynek.engagement.notifications.EngagementNotifications;
 
 /**
  * Opinie o sprzedawcy. Wystawia je kupujący zrealizowanego zamówienia albo klient wykonanej usługi (opinia zweryfikowanego
@@ -37,13 +38,15 @@ public class ReviewService {
     private final OrderClient orders;
     private final BookingClient bookings;
     private final IdentityClient identity;
+    private final EngagementNotifications notices;
     private final Clock clock;
 
-    public ReviewService(ReviewRepository reviews, OrderClient orders, BookingClient bookings, IdentityClient identity, Clock clock) {
+    public ReviewService(ReviewRepository reviews, OrderClient orders, BookingClient bookings, IdentityClient identity, EngagementNotifications notices, Clock clock) {
         this.reviews = reviews;
         this.orders = orders;
         this.bookings = bookings;
         this.identity = identity;
+        this.notices = notices;
         this.clock = clock;
     }
 
@@ -77,7 +80,9 @@ public class ReviewService {
             throw conflict("Na tę opinię już odpowiedziałeś.");
         }
         review.reply(text.trim(), clock.instant());
-        return reviews.save(review);
+        Review replied = reviews.save(review);
+        notices.reviewReplied(replied);
+        return replied;
     }
 
     public List<Review> ofChannel(UUID channelId, int offset, int limit) {
@@ -131,6 +136,7 @@ public class ReviewService {
             throw conflict(duplicate);
         }
         notifySource(saved);
+        notices.reviewed(saved);
         return saved;
     }
 

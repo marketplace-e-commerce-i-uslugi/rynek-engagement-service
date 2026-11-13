@@ -30,6 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import pl.rynek.engagement.TestcontainersConfig;
+import pl.rynek.engagement.clients.NotificationClient;
 import pl.rynek.engagement.clients.CatalogClient;
 import pl.rynek.engagement.clients.CatalogClient.OfferInfo;
 import pl.rynek.engagement.clients.IdentityClient;
@@ -46,6 +47,9 @@ class LikeAndReportTests {
 
     @MockitoBean
     JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    NotificationClient notifications;
 
     @MockitoBean
     CatalogClient catalog;

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pl.rynek.engagement.clients.CatalogClient;
 import pl.rynek.engagement.clients.IdentityClient;
+import pl.rynek.engagement.notifications.EngagementNotifications;
 
 /**
  * Pytania do ofert: pytać może każdy zalogowany poza właścicielem oferty, odpowiada właściciel (raz), autor edytuje
@@ -26,12 +27,14 @@ public class QuestionService {
     private final QuestionRepository questions;
     private final CatalogClient catalog;
     private final IdentityClient identity;
+    private final EngagementNotifications notices;
     private final Clock clock;
 
-    public QuestionService(QuestionRepository questions, CatalogClient catalog, IdentityClient identity, Clock clock) {
+    public QuestionService(QuestionRepository questions, CatalogClient catalog, IdentityClient identity, EngagementNotifications notices, Clock clock) {
         this.questions = questions;
         this.catalog = catalog;
         this.identity = identity;
+        this.notices = notices;
         this.clock = clock;
     }
 
@@ -46,7 +49,9 @@ public class QuestionService {
             throw conflict("Nie możesz zadać pytania o własną ofertę.");
         }
         String name = identity.displayName(userId).orElse("Kupujący");
-        return questions.save(new Question(offerId, offer.ownerId(), userId, name, text.trim(), clock.instant()));
+        Question asked = questions.save(new Question(offerId, offer.ownerId(), userId, name, text.trim(), clock.instant()));
+        notices.questionAsked(asked, offer.title());
+        return asked;
     }
 
     public Question edit(UUID userId, UUID questionId, String text) {
@@ -70,7 +75,9 @@ public class QuestionService {
             throw conflict("Na to pytanie już odpowiedziałeś.");
         }
         question.answer(text.trim(), clock.instant());
-        return questions.save(question);
+        Question answered = questions.save(question);
+        notices.questionAnswered(answered);
+        return answered;
     }
 
     /** „Przydatne”: ponowienie przez tego samego użytkownika niczego nie zmienia. */
