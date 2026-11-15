@@ -43,6 +43,16 @@ public class EngagementNotifications {
                 r.getSourceType() == Review.Source.ORDER ? "/profil/zamowienia" : "/profil/rezerwacje", "review-" + r.getId() + "-replied");
     }
 
+    /** Decyzja moderatora dla autora treści albo oferty. Kategoria „wiadomości”, bo to komunikat serwisu. */
+    public void moderation(UUID userId, String title, String body, String link, String dedupeKey) {
+        notifications.send(userId, "messages", title, body, link, dedupeKey);
+    }
+
+    /** Wynik rozpatrzenia dla zgłaszającego. */
+    public void reportDecided(UUID reporterId, UUID reportId, String body) {
+        notifications.send(reporterId, "messages", "Rozpatrzyliśmy Twoje zgłoszenie", body, "/", "report-" + reportId + "-decided");
+    }
+
     private static String category(Review r) {
         return r.getSourceType() == Review.Source.ORDER ? "orders" : "bookings";
     }

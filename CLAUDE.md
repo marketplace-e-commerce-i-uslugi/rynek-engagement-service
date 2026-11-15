@@ -2,7 +2,7 @@
 
 Mikroserwis platformy **Rynek**: `engagement-service` — pytania (komentarze), opinie, polubienia, zgłoszenia
 
-Zakres, endpointy i zdarzenia są opisane w `README.md`. Wszystkie endpointy ze specyfikacji są zaimplementowane (stan w `README.md`). Nie dodawaj Kafki ani logiki spoza prośby.
+Zakres, endpointy i zdarzenia są opisane w `README.md`. Wszystkie endpointy ze specyfikacji są zaimplementowane (stan w `README.md`), także moderacja zgłoszeń dla roli ADMIN (`reports.AdminReportService`, `api.AdminReportsController`). Nie dodawaj Kafki ani logiki spoza prośby.
 
 ## Wspólne konwencje API (§1 dokumentu architektury)
 

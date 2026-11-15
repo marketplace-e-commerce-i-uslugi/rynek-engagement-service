@@ -31,6 +31,21 @@ public class CatalogClient {
         }
     }
 
+    /**
+     * Blokada oferty przez moderatora (wstrzymuje ją i uniemożliwia publikację) albo jej zdjęcie. {@code false}, gdy oferty już nie ma;
+     * niedostępny catalog to 503, żeby moderator nie uznał sprawy za załatwioną.
+     */
+    public boolean setBlocked(UUID offerId, boolean blocked) {
+        try {
+            http.put().uri("/internal/offers/{id}/moderation", offerId).body(java.util.Map.of("blocked", blocked)).retrieve().toBodilessEntity();
+            return true;
+        } catch (HttpClientErrorException.NotFound e) {
+            return false;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            throw Clients.unavailable("Katalog ofert");
+        }
+    }
+
     /** {@code available}: oferta jest opublikowana; {@code ownerId} to właściciel (sprzedawca). */
     public record OfferInfo(UUID offerId, boolean available, String title, UUID channelId, UUID ownerId) {
     }
