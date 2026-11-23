@@ -99,7 +99,7 @@ class QuestionFlowTests {
         String id = JsonPath.read(body, "$.id");
         // Sprzedawca dostaje powiadomienie o pytaniu (tytuł oferty z catalog, autor i treść w skrócie).
         verify(notifications).send(eq(seller), eq("messages"), eq("Nowe pytanie: Oferta"), eq("Jan Kowalski: Czy to ma gwarancję?"),
-                eq("/oferta/" + offer), eq("question-" + id + "-asked"));
+                eq("/oferta/" + offer + "?tab=pytania"), eq("question-" + id + "-asked"));
 
         // Lista jest publiczna; „mine” widzi tylko autor.
         mvc.perform(get("/api/v1/offers/" + offer + "/questions")).andExpect(status().isOk())
@@ -118,8 +118,8 @@ class QuestionFlowTests {
         answer(id, seller, "  ").andExpect(status().isBadRequest());
         answer(id, seller, "Tak, 24 miesiące.").andExpect(status().isCreated())
                 .andExpect(jsonPath("$.answer.text").value("Tak, 24 miesiące."));
-        verify(notifications).send(eq(asker), eq("messages"), eq("Odpowiedź na Twoje pytanie"), eq("Tak, 24 miesiące."),
-                eq("/oferta/" + offer), eq("question-" + id + "-answered"));
+        verify(notifications).send(eq(asker), eq("messages"), eq("Odpowiedź na Twoje pytanie"), eq("„Czy jest gwarancja 24 miesiące?”: Tak, 24 miesiące."),
+                eq("/oferta/" + offer + "?tab=pytania"), eq("question-" + id + "-answered"));
         answer(id, seller, "Jeszcze raz").andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Na to pytanie już odpowiedziałeś."));
         edit("/api/v1/questions/" + id, asker, "Zmiana po odpowiedzi").andExpect(status().isConflict())

@@ -25,12 +25,12 @@ public class EngagementNotifications {
 
     public void questionAsked(Question q, String offerTitle) {
         notifications.send(q.getSellerId(), "messages", "Nowe pytanie: " + offerTitle, q.getAuthorName() + ": " + excerpt(q.getText()),
-                offerLink(q.getOfferId()), "question-" + q.getId() + "-asked");
+                questionsLink(q.getOfferId()), "question-" + q.getId() + "-asked");
     }
 
     public void questionAnswered(Question q) {
-        notifications.send(q.getAuthorId(), "messages", "Odpowiedź na Twoje pytanie", excerpt(q.getAnswerText()),
-                offerLink(q.getOfferId()), "question-" + q.getId() + "-answered");
+        notifications.send(q.getAuthorId(), "messages", "Odpowiedź na Twoje pytanie", "„" + excerpt(q.getText(), 60) + "”: " + excerpt(q.getAnswerText()),
+                questionsLink(q.getOfferId()), "question-" + q.getId() + "-answered");
     }
 
     public void reviewed(Review r) {
@@ -61,8 +61,16 @@ public class EngagementNotifications {
         return "/oferta/" + offerId;
     }
 
+    private static String questionsLink(UUID offerId) {
+        return offerLink(offerId) + "?tab=pytania";
+    }
+
     private static String excerpt(String text) {
+        return excerpt(text, EXCERPT);
+    }
+
+    private static String excerpt(String text, int max) {
         String clean = text == null ? "" : text.trim().replaceAll("\\s+", " ");
-        return clean.length() <= EXCERPT ? clean : clean.substring(0, EXCERPT - 1) + "…";
+        return clean.length() <= max ? clean : clean.substring(0, max - 1) + "…";
     }
 }
